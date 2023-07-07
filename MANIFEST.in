@@ -1,0 +1,2 @@
+include test/*
+include CHANGELOG.md
