@@ -1,13 +1,14 @@
 from httpx import AsyncClient, create_ssl_context
 from httpx_tls.mocks import SSLContextProxy
+from httpx_tls.profiles import TLSProfile, Http2Profile
 
 
 class AsyncTLSClient(AsyncClient):
 
-    def __init__(self, http_config=None, h2_config=None, verify=True, cert=None, trust_env=True, **kwargs):
+    def __init__(self, tls_config=None, h2_config=None, verify=True, cert=None, trust_env=True, **kwargs):
 
         context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
-        verify = SSLContextProxy(context, http_config)
+        verify = SSLContextProxy(context, tls_config)
         self.h2_config = h2_config
 
         super().__init__(verify=verify, cert=cert, trust_env=trust_env, **kwargs)
