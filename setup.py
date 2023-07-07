@@ -23,7 +23,7 @@ setup(
     python_requires='>=3.5',
     packages=['httpx_tls', 'httpx_tls.patch'],
     install_requires=['httpx',
-                      'tlslite @ git+https://github.com/charxhit/tlslite-ng.git@httpx-integration',
+                      'tlslite-ng @ git+https://github.com/charxhit/tlslite-ng.git@httpx-integration',
                       'trio',
                       'user-agents',
                       'h2',
