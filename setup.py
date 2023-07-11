@@ -8,7 +8,7 @@ setup(
     version="0.0.1",
     author="Charchit Agarwal",
     author_email="charchit.a00@gmail.com",
-    url="https://www.github.com/charxhit/recaptcha-manager",
+    url="https://github.com/charxhit/httpx-tls",
     description="Almighty patch to expose and configure low-level connection details in httpx",
     long_description=long_description,
     long_description_content_type="text/markdown",
