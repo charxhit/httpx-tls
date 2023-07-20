@@ -124,6 +124,7 @@ class AsyncHTTP2ConnectionPatch(Patch):
         profile = request.extensions['h2_profile']
         settings = profile.get_settings()
         connection_flow = profile.connection_flow if profile.connection_flow else 2 ** 24
+        max_ts = settings.get(1, 4096)  # Get max table size if provided, else use the rfc default 4096
         priority_frames = profile.get_priority_frames()
 
         if not settings:
@@ -155,6 +156,11 @@ class AsyncHTTP2ConnectionPatch(Patch):
                 new_inner_settings[key] = inner_settings[key]
 
             local_settings._settings = new_inner_settings
+
+        # Now, because httpx does not automatically adjust the maximum header table size, we'll do that here. As per the
+        # RFC, this should actually be done after we have received an ack, but doing it that way would be unnecessarily
+        # *patchy* because, again, httpx does not bother with this at all (plus it's also mostly harmless).
+        original_self._h2_state.decoder.max_allowed_table_size = max_ts
 
         original_self._h2_state.initiate_connection()
         original_self._h2_state.increment_flow_control_window(connection_flow)
