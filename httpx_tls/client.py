@@ -1,6 +1,8 @@
 from httpx import AsyncClient, create_ssl_context
 from httpx_tls.mocks import SSLContextProxy
 
+__all__ = ["AsyncClient"]
+
 
 class AsyncTLSClient(AsyncClient):
 

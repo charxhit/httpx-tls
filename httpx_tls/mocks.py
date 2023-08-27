@@ -4,6 +4,9 @@ import errno
 import time
 import socket
 
+__all__ = ["SSLContextProxy",
+           "MockSSLObject"]
+
 
 class SSLContextProxy:
     __class__ = SSLContext

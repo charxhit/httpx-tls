@@ -2,6 +2,14 @@ import re
 import user_agents
 from .constants import Flags
 
+__all__ = ["Chrome",
+           "Edge",
+           "Firefox",
+           "Opera",
+           "Safari",
+           "get_browser_data_class",
+           "get_device_and_browser_from_ua"]
+
 
 class Http2Data:
     akamai_versions = {}
