@@ -1,10 +1,10 @@
 import collections
 import copy
-from httpx_tls.constants import TLSExtConstants, Http2Constants
+from httpx_tls.constants import TLSExtConstants, Http2Constants, TLSVersionConstants
 from tlslite import HandshakeSettings, constants
 from httpx_tls import database
+import struct
 
-import functools
 ja3_str = '771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,' \
           '51-23-17513-13-45-65281-5-43-27-11-10-18-35-0-16-21,29-23-24,0'
 ja3_str2 = '771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,' \
@@ -26,11 +26,12 @@ class Profile:
 
 class TLSProfile(Profile):
 
-    def __init__(self, ciphers=None, extensions=None, groups=None, settings=None):
+    def __init__(self, tls_version=None, ciphers=None, extensions=None, groups=None, settings=None):
 
         self.ciphers = ciphers if ciphers else []
         self.extensions = extensions if extensions else []
         self.groups = groups if groups else []
+        self.tls_version = tls_version if tls_version else (3, 3)
         self.kwargs = {}
         self.settings = settings
 
@@ -61,7 +62,13 @@ class TLSProfile(Profile):
         extension_order = list(map(int, extensions.split('-')))
         groups_order = list(map(int, groups.split('-')))
 
-        return cls(ciphers=cipher_order, extensions=extension_order, groups=groups_order)
+        # Next we make sure the tls version in the ja3 is valid
+        try:
+            tls_version = TLSVersionConstants.version_mapping[version]
+        except KeyError:
+            raise ValueError(f"invalid or unsupported tls version ({version}) provided in the ja3 string")
+
+        return cls(tls_version=tls_version, ciphers=cipher_order, extensions=extension_order, groups=groups_order)
 
     @classmethod
     def create_from_version(cls, browser: str, version: int, ios_version: int = None):
@@ -90,7 +97,10 @@ class TLSProfile(Profile):
         self.assert_no_duplicates()
         settings = HandshakeSettings()
 
-        # First, we set all extensions given in self.extensions on the settings object
+        # First, we set the minimum tls version we require
+        self._set_tls_version(settings)
+
+        # Second, we set all extensions given in self.extensions on the settings object
         self._set_extensions(settings)
 
         # Then, we set the cipher, group and extension order properties
@@ -117,6 +127,9 @@ class TLSProfile(Profile):
     @staticmethod
     def _are_iterable_elements_unique(iterable):
         return len(iterable) - len(set(iterable)) == 0
+
+    def _set_tls_version(self, settings: HandshakeSettings):
+        settings.minVersion = self.tls_version
 
     def _adjust_key_shares(self, settings: HandshakeSettings):
         # Convert default key shares supported by tlslite to their numeric ids

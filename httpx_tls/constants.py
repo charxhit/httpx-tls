@@ -1,5 +1,10 @@
 import h2.settings
 
+__all__ = ["Flags",
+           "Http2Constants",
+           "TLSExtConstants",
+           "TLSVersionConstants"]
+
 
 class MetaFlags(type):
     def __contains__(cls, x):
@@ -131,4 +136,11 @@ class TLSExtConstants:
                     34: DefaultValue('use_delegated_credential_ext', on=True, off=False),
                     35: DefaultValue('use_session_ticket_ext', on=True, off=False),
                     17513: DefaultValue('use_alps_ext', on=True, off=False),
-                    65281: DefaultValue('use_renegotiation_ext', on=True, off=False)}
+                    65281: DefaultValue('use_renegotiation_ext', on=True, off=False)
+                    }
+
+
+class TLSVersionConstants:
+    version_mapping = {'770': (3, 2),
+                       '771': (3, 3),
+                       '772': (3, 4)}
