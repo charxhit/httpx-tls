@@ -24,3 +24,14 @@ class Patch:
             partial_function = functools.partialmethod(getattr(cls, method), target_function)
             functools.update_wrapper(partial_function, target_function)
             setattr(cls.patch_for, method, partial_function)
+
+    @classmethod
+    def unpatch_all(cls):
+        for child in cls.__subclasses__():
+            child._unpatch()
+
+    @classmethod
+    def _unpatch(cls):
+        for name, func in cls.original_funcs:
+            setattr(cls.patch_for, name, func)
+
