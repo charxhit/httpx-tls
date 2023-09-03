@@ -107,3 +107,25 @@ To use httpx-tls with a custom http2 and TLS fingerprint:
     trio.run(main)
 ```
 
+## Precautions (read this section before using httpx-tls)
+
+While I designed httpx-tls to not have obscure surprises in its API, there still are a few differences between httpx-tls 
+and httpx (mostly because of the underlying third-party dependencies) which are summarised below:
+
+1. Certificate Verification:
+httpx-tls does no certificate verification at all. Essentially, you can assume that the `verify` parameter when creating
+a client will always be equivalent to False. Adding client certificates is planned a feature, but it does not work
+right now.
+
+2. Sync support
+Currently, httpx-tls only offers asynchronous support, but I do plan to add sync support soon.
+
+3. TLS 1.2
+TLS 1.2 is supported by httpx-tls, but is not yet well tested enough. TLS 1.3, the current web standard, is fully 
+supported and tested.
+
+4. General bugs
+httpx-tls is an ambitious project which currently does not have a test-suite. Please report any bugs you come across.
+
+
+
