@@ -3,7 +3,7 @@ import functools
 
 class Patch:
     patch_for = None
-    black_list = ['patch', 'patch_for']
+    black_list = ['patch', 'patch_for', '_unpatch', 'unpatch_all']
     original_funcs = {}
 
     @classmethod
