@@ -32,6 +32,6 @@ class Patch:
 
     @classmethod
     def _unpatch(cls):
-        for name, func in cls.original_funcs:
+        for name, func in cls.original_funcs.items():
             setattr(cls.patch_for, name, func)
 
