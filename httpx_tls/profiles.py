@@ -1,9 +1,9 @@
 import collections
 import copy
+import random
 from httpx_tls.constants import TLSExtConstants, Http2Constants, TLSVersionConstants
 from tlslite import HandshakeSettings, constants
 from httpx_tls import database
-import struct
 
 ja3_str = '771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,' \
           '51-23-17513-13-45-65281-5-43-27-11-10-18-35-0-16-21,29-23-24,0'
@@ -26,7 +26,8 @@ class Profile:
 
 class TLSProfile(Profile):
 
-    def __init__(self, tls_version=None, ciphers=None, extensions=None, groups=None, settings=None):
+    def __init__(self, tls_version=None, ciphers=None, extensions=None, groups=None, settings=None,
+                 randomize_extensions=True):
 
         self.ciphers = ciphers if ciphers else []
         self.extensions = extensions if extensions else []
@@ -34,6 +35,7 @@ class TLSProfile(Profile):
         self.tls_version = tls_version if tls_version else (3, 3)
         self.kwargs = {}
         self.settings = settings
+        self.randomize_extensions = randomize_extensions
 
         self._create()
 
@@ -44,7 +46,7 @@ class TLSProfile(Profile):
         return self.settings
 
     @classmethod
-    def create_from_ja3(cls, ja3:str):
+    def create_from_ja3(cls, ja3:str, randomize_extensions=True):
         ja3 = ja3.strip()
         version, ciphers, extensions, groups, ec_points = ja3.split(',')
 
@@ -68,13 +70,14 @@ class TLSProfile(Profile):
         except KeyError:
             raise ValueError(f"invalid or unsupported tls version ({version}) provided in the ja3 string")
 
-        return cls(tls_version=tls_version, ciphers=cipher_order, extensions=extension_order, groups=groups_order)
+        return cls(tls_version=tls_version, ciphers=cipher_order, extensions=extension_order, groups=groups_order,
+                   randomize_extensions=randomize_extensions)
 
     @classmethod
-    def create_from_version(cls, browser: str, version: int, ios_version: int = None):
+    def create_from_version(cls, browser: str, version: int, ios_version: int = None, randomize_extensions=True):
         browser_data_class: database.Browser = database.get_browser_data_class(browser)
         ja3 = browser_data_class.get_ja3_from_version(version, ios_version=ios_version)
-        return cls.create_from_ja3(ja3)
+        return cls.create_from_ja3(ja3, randomize_extensions=randomize_extensions)
 
     @classmethod
     def create_from_handshake_settings(cls, settings):
@@ -84,9 +87,9 @@ class TLSProfile(Profile):
         return cls(settings=settings)
 
     @classmethod
-    def create_from_useragent(cls, useragent: str):
+    def create_from_useragent(cls, useragent: str, randomize_extensions=True):
         device, browser, version, ios_version = database.get_device_and_browser_from_ua(useragent)
-        return cls.create_from_version(browser, version, ios_version=ios_version)
+        return cls.create_from_version(browser, version, ios_version=ios_version, randomize_extensions=randomize_extensions)
 
     def _create(self):
         # We perform no internal checks if user supplied a settings object themselves
@@ -95,7 +98,11 @@ class TLSProfile(Profile):
 
         # Make sure extensions, groups and cipher lists only contain unique values
         self.assert_no_duplicates()
-        settings = HandshakeSettings()
+        settings = HandshakeSettings(
+            cipher_order=self.ciphers,
+            extension_order=self.extensions,
+            groups_order=self.groups
+        )
 
         # First, we set the minimum tls version we require
         self._set_tls_version(settings)
@@ -153,10 +160,35 @@ class TLSProfile(Profile):
         new_ks = [constants.GroupName.toRepr(ks) for ks in new_ks]
         settings.keyShares = new_ks
 
+    def _randomize_extension_order(self):
+        """
+        Randomize the order of TLS extensions while maintaining protocol validity.
+        Returns a new randomized list of extensions.
+        """
+        if not self.extensions:
+            return []
+
+        # Create a copy to avoid modifying the original
+        randomized = self.extensions.copy()
+
+        # Shuffle the extension order
+        random.shuffle(randomized)
+
+        return randomized
+
     def _set_order(self, settings: HandshakeSettings):
         settings.cipher_order = self.ciphers
         settings.groups_order = self.groups
-        settings.extension_order = self.extensions
+
+        # Apply extension order randomization if enabled
+        if self.randomize_extensions:
+            extension_order = self._randomize_extension_order()
+        else:
+            extension_order = self.extensions
+
+        # Set extension order if we have extensions
+        if extension_order:
+            settings.extension_order = extension_order
 
     def _set_extensions(self, settings):
 

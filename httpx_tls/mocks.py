@@ -41,7 +41,7 @@ class SSLContextProxy:
 
         return setattr(self._context, key, value)
 
-    def wrap_bio(self, incoming, outgoing, server_side=False, server_hostname=None):
+    def wrap_bio(self, incoming, outgoing, server_side=False, server_hostname=None, session=None):
         """
         Intercept call to wrap_bio and return a mocked SSLObject instead.
 

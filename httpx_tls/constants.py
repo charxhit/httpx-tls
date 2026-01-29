@@ -46,7 +46,8 @@ class Http2Constants:
                         4: h2.settings.SettingCodes.INITIAL_WINDOW_SIZE,
                         5: h2.settings.SettingCodes.MAX_FRAME_SIZE,
                         6: h2.settings.SettingCodes.MAX_HEADER_LIST_SIZE,
-                        8: h2.settings.SettingCodes.ENABLE_CONNECT_PROTOCOL}
+                        8: h2.settings.SettingCodes.ENABLE_CONNECT_PROTOCOL,
+                        9: 9}  # SETTINGS_NO_RFC7540_PRIORITIES (RFC 9218) - used by Safari 18+
 
     header_mapping = {'m': b':method',
                       'a': b':authority',
@@ -116,6 +117,8 @@ class TLSExtConstants:
            59: 'dnssec_chain',
            60: 'sequence_number_encryption_algorithms',
            17513: 'application_settings',
+           17613: 'application_settings_new',
+           65037: 'encrypted_client_hello',
            65281: 'renegotiation_info'
     }
 
@@ -123,7 +126,7 @@ class TLSExtConstants:
                      30, 31, 32, 33, 36, 37, 38, 39, 41, 42, 44,
                      47, 48, 50, 52, 53, 54, 55, 56, 57, 58, 59, 60)
 
-    AUTOMATIC = (0, 9, 10, 11, 13, 28, 43, 45, 49, 51,)
+    AUTOMATIC = (0, 9, 10, 11, 13, 28, 43, 45, 49, 51, 65037)
 
     CONFIGURABLE = {5: DefaultValue('use_status_request_ext', on=True, off=False),
                     15: DefaultValue('use_heartbeat_extension', on=True, off=False),
@@ -136,6 +139,7 @@ class TLSExtConstants:
                     34: DefaultValue('use_delegated_credential_ext', on=True, off=False),
                     35: DefaultValue('use_session_ticket_ext', on=True, off=False),
                     17513: DefaultValue('use_alps_ext', on=True, off=False),
+                    17613: DefaultValue('use_alps_ext_new', on=True, off=False),
                     65281: DefaultValue('use_renegotiation_ext', on=True, off=False)
                     }
 

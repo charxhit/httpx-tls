@@ -1,0 +1,1 @@
+git+https://github.com/AnCry1596/tlslite-ng.git
